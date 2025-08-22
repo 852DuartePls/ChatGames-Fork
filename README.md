@@ -12,4 +12,4 @@ Download the latest release from the [releases page](https://github.com/852Duart
 folder.
 
 # Configuration
-The plugin has a configuration file located at `plugins/ChatGamesZ/config.yml`.
+The plugin has a configuration file located at `plugins/ChatGames/config.yml`.
