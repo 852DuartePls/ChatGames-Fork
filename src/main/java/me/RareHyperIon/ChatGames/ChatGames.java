@@ -10,6 +10,9 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Objects;
 
 public final class ChatGames extends JavaPlugin {
@@ -18,6 +21,7 @@ public final class ChatGames extends JavaPlugin {
 
     private final LanguageHandler languageHandler;
     private final GameHandler gameHandler;
+    private final File chatGamesFolder = new File(Bukkit.getPluginsFolder(), "ChatGames");
 
     public ChatGames() {
         this.saveDefaultConfig();
@@ -46,7 +50,7 @@ public final class ChatGames extends JavaPlugin {
     }
 
     public void reload() {
-        LOGGER.info("[ChatGames] Reloading...");
+        LOGGER.info("Reloading...");
         this.reloadConfig();
         this.gameHandler.reload();
         this.languageHandler.load();
@@ -58,5 +62,26 @@ public final class ChatGames extends JavaPlugin {
 
     public @NotNull ComponentLogger getComponentLogger() {
         return LOGGER;
+    }
+
+    @Override
+    public void saveDefaultConfig() {
+        if (!chatGamesFolder.exists() && !chatGamesFolder.mkdirs()) {
+            throw new IllegalStateException("Could not create ChatGames folder");
+        }
+
+        File configFile = new File(chatGamesFolder, "config.yml");
+        if (!configFile.exists()) {
+            try {
+                Files.copy(Objects.requireNonNull(getClass().getClassLoader()
+                        .getResourceAsStream("config.yml")), configFile.toPath());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create config.yml in ChatGames folder", e);
+            }
+        }
+    }
+
+    public @NotNull File getChatGamesFolder() {
+        return chatGamesFolder;
     }
 }

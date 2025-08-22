@@ -9,13 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class LanguageHandler {
 
     private final ChatGames plugin;
-
     private final Map<String, String> translations = new HashMap<>();
 
     public LanguageHandler(final ChatGames plugin) {
@@ -25,45 +23,38 @@ public class LanguageHandler {
     public final void load() {
         final String language = this.plugin.getConfig().getString("Language", "EN-US");
 
-        if(!(new File(this.plugin.getDataFolder(), "language")).exists()) {
-            this.saveDefault();
+        // Use ChatGames folder from main plugin class
+        File languageFolder = new File(plugin.getChatGamesFolder(), "language");
+        if (!languageFolder.exists() && !languageFolder.mkdirs()) {
+            throw new IllegalStateException("Failed to create ChatGames/language folder.");
         }
 
-        final File file = new File(plugin.getDataFolder(), "language/" + language + ".yml");
-
-        if(!file.exists()) {
-            throw new IllegalStateException("The language \"" + language + "\" doesn't have any translations.");
+        File file = new File(languageFolder, language + ".yml");
+        if (!file.exists()) {
+            this.saveDefault(file);
         }
 
-        final FileConfiguration lang = YamlConfiguration.loadConfiguration(file);
+        FileConfiguration langConfig = YamlConfiguration.loadConfiguration(file);
 
-        for(final String key : lang.getKeys(false)) {
-            this.translations.put(key, lang.getString(key));
+        translations.clear();
+        for (String key : langConfig.getKeys(false)) {
+            translations.put(key, langConfig.getString(key));
         }
 
-        ChatGames.LOGGER.info("[ChatGames] Loaded language.");
+        plugin.getComponentLogger().info("Loaded language: {}", language);
     }
 
     public final String get(final String key) {
-        return this.translations.get(key);
+        return translations.get(key);
     }
 
-    private void saveDefault() {
-        final File folder = new File(this.plugin.getDataFolder(), "language");
-        if(!folder.mkdirs()) throw new IllegalStateException("Failed to create language folder.");
-
-        for(final String language : List.of("EN-US.yml")) {
-            final File out = new File(folder, language);
-
-            try(final InputStream stream = this.plugin.getResource("language/" + language)) {
-                if(stream == null) throw new IllegalStateException("Resource not found in jar.");
-                Files.copy(stream, out.toPath());
-            } catch (final IOException e) {
-                throw new IllegalStateException("Failed to create default language file: " + language, e);
-            }
+    private void saveDefault(File targetFile) {
+        try (InputStream stream = plugin.getResource("language/" + targetFile.getName())) {
+            if (stream == null) throw new IllegalStateException("Resource not found in jar: " + targetFile.getName());
+            Files.copy(stream, targetFile.toPath());
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to create default language file: " + targetFile.getName(), e);
         }
-
-        ChatGames.LOGGER.info("[ChatGames] Created default language configurations.");
+        plugin.getComponentLogger().info("Created default language file: {}", targetFile.getName());
     }
-
 }

@@ -4,9 +4,15 @@ import me.RareHyperIon.ChatGames.ChatGames;
 import me.RareHyperIon.ChatGames.games.ActiveGame;
 import me.RareHyperIon.ChatGames.games.GameConfig;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -20,7 +26,6 @@ public class GameHandler {
     private final Random random = new Random();
 
     private int minimumPlayers, taskId;
-
     private ActiveGame game;
     private BukkitTask task;
 
@@ -30,51 +35,77 @@ public class GameHandler {
     }
 
     public final void interval() {
-        if(Bukkit.getOnlinePlayers().size() < this.minimumPlayers) return;
-        if(this.game != null) return;
+        if (Bukkit.getOnlinePlayers().size() < minimumPlayers) return;
+        if (game != null) return;
 
-        final GameConfig config = this.games.get(this.random.nextInt(this.games.size()));
-        this.game = new ActiveGame(this.plugin, config, this.language);
+        final GameConfig config = games.get(random.nextInt(games.size()));
+        game = new ActiveGame(plugin, config, language);
 
-        this.task = Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-            this.game.end();
-            this.game = null;
-            this.task = null;
+        task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            game.end();
+            game = null;
+            task = null;
         }, config.timeout * 20L);
     }
 
     public final void win(final Player player) {
-        this.task.cancel();
-        this.task = null;
+        if (task != null) task.cancel();
+        task = null;
 
-        this.game.win(player);
-        this.game = null;
+        if (game != null) game.win(player);
+        game = null;
     }
 
     public final ActiveGame getGame() {
-        return this.game;
+        return game;
     }
 
     public final void load() {
-        try {
-            final GameConfig config = new GameConfig(this.plugin);
-            this.games.add(config);
-        } catch (Exception e) {
-            plugin.getComponentLogger().error("[ChatGames] Failed to load games.yml: {}", e.getMessage());
+        final File folder = new File(plugin.getChatGamesFolder(), "games");
+
+        if (!folder.exists()) saveDefault(folder);
+
+        final File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".yml"));
+        if (files == null || files.length == 0) {
+            plugin.getComponentLogger().warn("No games found in games folder!");
+            return;
         }
 
-        final int interval = this.plugin.getConfig().getInt("GameInterval");
-        this.minimumPlayers = this.plugin.getConfig().getInt("MinimumPlayers");
+        for (final File file : files) {
+            try {
+                games.add(new GameConfig(YamlConfiguration.loadConfiguration(file)));
+            } catch (Exception e) {
+                plugin.getComponentLogger().error("Failed to load {}: {}", file.getName(), e.getMessage());
+            }
+        }
 
-        this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, this::interval, 0, interval * 20L);
+        minimumPlayers = plugin.getConfig().getInt("MinimumPlayers");
+        int interval = plugin.getConfig().getInt("GameInterval");
+        taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::interval, 0, interval * 20L);
 
-        plugin.getComponentLogger().info("[ChatGames] Loaded games.");
+        plugin.getComponentLogger().info("Loaded {} games.", games.size());
+    }
+
+    private void saveDefault(@NotNull File folder) {
+        if (!folder.mkdirs() && !folder.exists())
+            throw new IllegalStateException("Failed to create games folder.");
+
+        for (final String game : List.of("trivia.yml", "math.yml", "unscramble.yml")) {
+            final File out = new File(folder, game);
+            try (InputStream stream = plugin.getResource("games/" + game)) {
+                if (stream == null) continue;
+                Files.copy(stream, out.toPath());
+            } catch (IOException e) {
+                plugin.getComponentLogger().error("Failed to copy default game {}: {}", game, e.getMessage());
+            }
+        }
+
+        plugin.getComponentLogger().info("Created default game configurations.");
     }
 
     public final void reload() {
-        this.games.clear();
-        Bukkit.getScheduler().cancelTask(this.taskId);
-        this.load();
+        games.clear();
+        Bukkit.getScheduler().cancelTask(taskId);
+        load();
     }
-
 }
