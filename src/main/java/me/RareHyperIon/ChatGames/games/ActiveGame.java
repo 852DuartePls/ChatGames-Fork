@@ -49,7 +49,13 @@ public class ActiveGame {
                 String parsed = command
                         .replace("{player}", winner.getName())
                         .replace("%player%", winner.getName());
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+                try {
+                    if (!Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed)) {
+                        plugin.getComponentLogger().warn("Reward Command failed to execute: {}", parsed);
+                    }
+                } catch (Exception e) {
+                    plugin.getComponentLogger().error("Error executing command {}: {}", parsed, e.getMessage());
+                }
             }
         });
     }
