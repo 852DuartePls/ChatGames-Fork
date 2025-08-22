@@ -11,20 +11,19 @@ public final class Utility {
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
-    private Utility() {
-        // prevent instantiation
-    }
+    private Utility() { /* prevent instantiation */ }
 
-    /**
-     * Parses a string using MiniMessage if it detects tags, otherwise falls back to legacy '&' colors.
-     */
     @Contract("_ -> new")
-    public static @NotNull String color(final @NotNull String string) {
+    public static @NotNull Component color(final @NotNull String string) {
         if (string.contains("<") && string.contains(">")) {
-            Component component = MINI_MESSAGE.deserialize(string);
-            return LEGACY.serialize(component);
+            // Treat as MiniMessage
+            return MINI_MESSAGE.deserialize(string);
+        } else if (string.contains("&")) {
+            // Treat as legacy color codes
+            return LEGACY.deserialize(string);
         } else {
-            return LEGACY.serialize(LEGACY.deserialize(string));
+            // Plain text
+            return Component.text(string);
         }
     }
 }

@@ -7,7 +7,7 @@
 ##       {name} - The name of the current game.                                  ##
 ###################################################################################
 
-Prefix: "&b&lChatGames&r"
-GameStart: "\n{prefix} You have &e{timeout} seconds &rto {descriptor}:\n&6{question}\n&r"
-GameEnd: "\n{prefix} &cNo got the answer in time.\n&r"
-GameWin: "\n{prefix} &a{player} won the game of {name}!\n&r"
+Prefix: "<bold><blue>ChatGames <gray>»</gray></bold>"
+GameStart: "<newline>{prefix} You have <yellow>{timeout}</yellow> seconds to {descriptor}:<newline><gold>{question}</gold><newline>"
+GameEnd: "<newline>{prefix} <red>No one got the answer in time! The correct answer was: <gold>{answer}</gold><newline>"
+GameWin: "<newline>{prefix} <green>{player}</green> won the game of <gold>{name}</gold>! The answer was: <gold>{answer}</gold><newline>"
