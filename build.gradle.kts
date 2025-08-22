@@ -5,6 +5,7 @@ plugins {
 
 group = "me.RareHyperIon"
 version = "1.1"
+description = "A plugin aimed to add fun chat based games to your server."
 
 repositories {
     mavenCentral()
@@ -30,18 +31,13 @@ tasks {
         val properties = mapOf(
             "version" to project.version,
             "name" to project.name,
-            "apiVersion" to "1.21"
+            "apiVersion" to "1.21",
+            "authors" to "RareHyperIon, DaveDuart",
+            "description" to project.description
         )
         inputs.properties(properties)
-        filesMatching("plugin.yml") {
+        filesMatching("paper-plugin.yml") {
             expand(properties)
-        }
-    }
-    runServer {
-        minecraftVersion("1.21.8")
-        serverJar(file("/run/purpur.jar"))
-        downloadPlugins {
-            github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
         }
     }
 }

@@ -1,18 +1,19 @@
 package me.RareHyperIon.ChatGames;
 
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import me.RareHyperIon.ChatGames.commands.ChatGameCommand;
 import me.RareHyperIon.ChatGames.handlers.GameHandler;
 import me.RareHyperIon.ChatGames.handlers.LanguageHandler;
 import me.RareHyperIon.ChatGames.listeners.PlayerListener;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.Bukkit;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Objects;
 
 public final class ChatGames extends JavaPlugin {
@@ -36,11 +37,13 @@ public final class ChatGames extends JavaPlugin {
     }
 
     @Override
+    @SuppressWarnings("UnstableApiUsage")
     public void onEnable() {
         this.gameHandler.load();
 
-        PluginCommand command = this.getCommand("chatgames");
-        if (command != null) command.setExecutor(new ChatGameCommand(this));
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands
+                -> commands.registrar().register("chatgames", List.of("cg", "chatgms"), new ChatGameCommand(this))
+        );
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this.gameHandler), this);
     }
 

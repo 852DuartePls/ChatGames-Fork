@@ -1,15 +1,17 @@
 package me.RareHyperIon.ChatGames.commands;
 
+import io.papermc.paper.command.brigadier.BasicCommand;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import me.RareHyperIon.ChatGames.ChatGames;
-import me.RareHyperIon.ChatGames.utility.Utility;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
-public class ChatGameCommand implements CommandExecutor, TabCompleter {
+@NullMarked
+@SuppressWarnings("UnstableApiUsage")
+public class ChatGameCommand implements BasicCommand {
 
     private final ChatGames plugin;
 
@@ -18,24 +20,26 @@ public class ChatGameCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(final CommandSender sender, final Command cmd, final String label, final String[] args) {
+    public void execute(CommandSourceStack source, String[] args) {
+        final var sender = source.getSender();
 
-        if(cmd.getName().equalsIgnoreCase("ChatGames")) {
-            if(args.length == 0 || !args[0].equalsIgnoreCase("reload")) {
-                sender.sendMessage(Utility.color("&cUsage: /cg reload"));
-                return true;
-            }
-
-            this.plugin.reload();
-            sender.sendMessage(Utility.color("&aSuccessfully reloaded."));
+        if (args.length == 0 || !args[0].equalsIgnoreCase("reload")) {
+            sender.sendRichMessage("<red>Usage: /cg reload");
+            return;
         }
 
-        return true;
+        this.plugin.reload();
+        sender.sendRichMessage("<green>Successfully reloaded.");
     }
 
     @Override
-    public List<String> onTabComplete(final CommandSender sender, final Command cnd, final String label, final String[] args) {
-        return List.of("reload");
+    public @Nullable String permission() {
+        return "chatgames.reload";
     }
 
+    @Override
+    public Collection<String> suggest(CommandSourceStack source, String[] args) {
+        if (args.length == 0) return List.of("reload");
+        return List.of();
+    }
 }

@@ -5,6 +5,7 @@
 ##       {descriptor} - The current games descriptor (for example "answer").     ##
 ##       {question} - The current games question.                                ##
 ##       {name} - The name of the current game.                                  ##
+##       {answer} - The answer to the current question.                          ##
 ###################################################################################
 
 Prefix: "<bold><blue>ChatGames <gray>»</gray></bold>"
