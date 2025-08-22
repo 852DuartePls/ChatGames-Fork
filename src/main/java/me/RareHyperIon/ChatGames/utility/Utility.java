@@ -1,25 +1,30 @@
 package me.RareHyperIon.ChatGames.utility;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 public final class Utility {
 
-    public static String color(final String string) {
-        return ChatColor.translateAlternateColorCodes('&', string);
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
+
+    private Utility() {
+        // prevent instantiation
     }
 
-    public static String format(final String string, final Object... objects) {
-        StringBuilder formattedMessage = new StringBuilder(string);
-
-        int placeholderIndex = formattedMessage.indexOf("{}");
-        int objIndex = 0;
-        while (placeholderIndex != -1 && objIndex < objects.length) {
-            formattedMessage.replace(placeholderIndex, placeholderIndex + 2, objects[objIndex].toString());
-            placeholderIndex = formattedMessage.indexOf("{}", placeholderIndex + 2);
-            objIndex++;
+    /**
+     * Parses a string using MiniMessage if it detects tags, otherwise falls back to legacy '&' colors.
+     */
+    @Contract("_ -> new")
+    public static @NotNull String color(final @NotNull String string) {
+        if (string.contains("<") && string.contains(">")) {
+            Component component = MINI_MESSAGE.deserialize(string);
+            return LEGACY.serialize(component);
+        } else {
+            return LEGACY.serialize(LEGACY.deserialize(string));
         }
-
-        return "[ChatGames] " + formattedMessage;
     }
-
 }
