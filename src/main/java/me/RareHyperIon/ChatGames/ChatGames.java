@@ -4,15 +4,17 @@ import me.RareHyperIon.ChatGames.commands.ChatGameCommand;
 import me.RareHyperIon.ChatGames.handlers.GameHandler;
 import me.RareHyperIon.ChatGames.handlers.LanguageHandler;
 import me.RareHyperIon.ChatGames.listeners.PlayerListener;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.logging.Logger;
 
 public final class ChatGames extends JavaPlugin {
 
-    public static Logger LOGGER = Bukkit.getLogger();
+    private final ComponentLogger LOGGER = ComponentLogger.logger("ChatGamesZ");
 
     private final LanguageHandler languageHandler;
     private final GameHandler gameHandler;
@@ -33,7 +35,8 @@ public final class ChatGames extends JavaPlugin {
     public void onEnable() {
         this.gameHandler.load();
 
-        this.getCommand("chatgames").setExecutor(new ChatGameCommand(this));
+        PluginCommand command = this.getCommand("chatgames");
+        if (command != null) command.setExecutor(new ChatGameCommand(this));
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this.gameHandler), this);
     }
 
@@ -53,4 +56,7 @@ public final class ChatGames extends JavaPlugin {
         return Objects.equals(this.getConfig().getString("LOG_TYPE"), "FULL");
     }
 
+    public @NotNull ComponentLogger getComponentLogger() {
+        return LOGGER;
+    }
 }
