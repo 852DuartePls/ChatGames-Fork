@@ -13,3 +13,5 @@ folder.
 
 # Configuration
 The plugin has a configuration file located at `plugins/ChatGames/config.yml`.
+To customize games and rewards, edit the `.yml` files in `plugins/ChatGames/games`.
+Each file includes example content that can serve as a template for easy modification and expansion.
