@@ -1,6 +1,6 @@
 name: ${name}
 version: '${version}'
-authors: ["${authors}"]
+authors: [${authors}]
 description: '${description}'
 main: me.RareHyperIon.ChatGames.ChatGames
 api-version: '${apiVersion}'
