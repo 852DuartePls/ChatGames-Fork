@@ -4,15 +4,9 @@ import me.RareHyperIon.ChatGames.ChatGames;
 import me.RareHyperIon.ChatGames.games.ActiveGame;
 import me.RareHyperIon.ChatGames.games.GameConfig;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -62,52 +56,19 @@ public class GameHandler {
     }
 
     public final void load() {
-        final File folder = new File(this.plugin.getDataFolder(), "games");
-
-        if(!folder.exists()) {
-            this.saveDefault();
-        }
-
-        final File[] games = folder.listFiles(((dir, name) -> name.toLowerCase().endsWith(".yml")));
-
-        if(games == null || games.length == 0) {
-            ChatGames.LOGGER.warning("[ChatGames] There are no games to load.");
-            return;
-        }
-
-        for(final File file : games) {
-            if(!file.isFile() || !file.getName().toLowerCase().endsWith(".yml")) continue;
-
-            final GameConfig config = new GameConfig(YamlConfiguration.loadConfiguration(file));
+        try {
+            final GameConfig config = new GameConfig(this.plugin);
             this.games.add(config);
+        } catch (Exception e) {
+            plugin.getComponentLogger().error("[ChatGames] Failed to load games.yml: {}", e.getMessage());
         }
 
-        final FileConfiguration pluginConfig = this.plugin.getConfig();
-        final int interval = pluginConfig.getInt("GameInterval");
-
-        this.minimumPlayers = pluginConfig.getInt("MinimumPlayers");
+        final int interval = this.plugin.getConfig().getInt("GameInterval");
+        this.minimumPlayers = this.plugin.getConfig().getInt("MinimumPlayers");
 
         this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, this::interval, 0, interval * 20L);
 
-        ChatGames.LOGGER.info("[ChatGames] Loaded games.");
-    }
-
-    private void saveDefault() {
-        final File folder = new File(this.plugin.getDataFolder(), "games");
-        if(!folder.mkdirs()) throw new IllegalStateException("Failed to create games folder.");
-
-        for(final String game : List.of("trivia.yml", "math.yml", "unscramble.yml")) {
-            final File out = new File(folder, game);
-
-            try(final InputStream stream = this.plugin.getResource("games/" + game)) {
-                if(stream == null) throw new IllegalStateException("Resource not found in jar.");
-                Files.copy(stream, out.toPath());
-            } catch (final IOException e) {
-                throw new IllegalStateException("Failed to create default games file: " + game, e);
-            }
-        }
-
-        ChatGames.LOGGER.info("[ChatGames] Created default game configurations.");
+        plugin.getComponentLogger().info("[ChatGames] Loaded games.");
     }
 
     public final void reload() {
